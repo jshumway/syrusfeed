@@ -17,12 +17,20 @@
       <br>
 
       <form action="/start-auth" method="POST">
-        <div class="btn-span">
-          <input type="submit" class="btn btn-primary btn-block btn-large" value="Sign Up With Evernote">
+        <div class="hidden-desktop">
+          <div class="btn-span">
+            <input type="submit" class="btn btn-primary btn-block btn-large" value="Sign Up With Evernote">
+            <br>
+          </div>
+        </div>
+        <div class="hidden-tablet hidden-phone">
+          <div class="row">
+            <div class="span4 offset2">
+              <input type="submit" class="btn btn-primary btn-block btn-large" value="Sign Up With Evernote">
+            </div>
+          </div>
         </div>
       </form>
-
-      <br>
 
       {{ lipsum(2) }}
     </div>

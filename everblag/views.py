@@ -8,7 +8,7 @@ import evernote.edam.notestore.NoteStore as NoteStore
 from flask import redirect, render_template, request, session, flash
 from sqlalchemy.orm.exc import NoResultFound
 
-from everblag import app, db
+from everblag import app, db, cache
 from everblag.models import User, Theme
 from everblag.util import slugify, strip_ml_tags
 
@@ -151,6 +151,13 @@ def blog_index(blog_slug):
     This function triggers a cache check vs evernote.
     """
 
+    blog_slug = str(blog_slug)
+
+    c = cache.get(blog_slug)
+
+    if c:
+        return c
+
     user = find_blog_owner(blog_slug)
 
     if not user:
@@ -176,9 +183,13 @@ def blog_index(blog_slug):
             'date': datetime.date.fromtimestamp(note.updated/1000)
             })
 
-    return render_template('/archive.html', posts=posts,
+    html = render_template('/archive.html', posts=posts,
                            title=user.blog_name, blog_slug=blog_slug,
                            stylesheet=user.theme.static_path)
+
+    cache.set(blog_slug, html, time=app.cache_tte)
+
+    return html
 
 
 def note_guid_from_slug(note_store, user, slug):
@@ -201,6 +212,13 @@ def blog_post(blog_slug, post_slug):
     if the cache is outdated.
     """
 
+    cache_key = str("%s/%s" % (blog_slug, post_slug))
+
+    c = cache.get(cache_key)
+
+    if c:
+        return c
+
     user = find_blog_owner(blog_slug)
 
     client = get_evernote_client(user.evernote_token)
@@ -211,7 +229,11 @@ def blog_post(blog_slug, post_slug):
 
     note = note_store.getNote(user.evernote_token, guid, True, False, False, False)
 
-    return render_template(
+    html = render_template(
         'post.html', title=note.title, content=note.content,
         date=datetime.date.fromtimestamp(note.updated/1000),
         stylesheet=user.theme.static_path)
+
+    cache.set(cache_key, html, time=app.cache_tte)
+
+    return html
