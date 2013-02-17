@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from everblag import run, db
-
+from everblag.models import Theme
 
 def example(name='world'):
     """
@@ -25,9 +25,17 @@ def runserver():
 def createdb():
     db.create_all()
 
+
 def resetdb():
     db.drop_all()
     db.create_all()
+
+
+def addtheme(theme_name, theme_path, thumbnail):
+    theme = Theme(theme_name, theme_path, thumbnail)
+
+    db.session.add(theme)
+    db.session.commit()
 
 
 ###############################################################################

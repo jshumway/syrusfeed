@@ -1,7 +1,41 @@
-<p>Now that you have authenticated against Evernote, customize you blog!</p>
+{% extends 'base.html' %}
+{% block body %}
+<div class="container">
+  <div class="row">
+    <div class="span8 offset2">
+      <div class="alert alert-success">
+        <strong>Success!</strong> You have connected to Evernote.
+      </div>
+      <p>Fill out a few options to customize your blog and you are all set.</p>
+      <p>You can change your blog name from your default username, if you would prefer. Additionally, there are a variety of themes to choose from to make help your blog represent <strong><em>you</em></strong>.</p>
 
-<form action="/sign-up" method="POST">
-  <input type="text" name="blog-name">
-  <input type="text" name="theme-name">
-  <input type="submit" value="Create Blog!">
-</form>
+      <form action="/sign-up" method="POST">
+        <label><strong>Blog Name</strong>
+          <input type="text" name="blog-name">
+        </label>
+        <fieldset>
+          <legend>Choose a Theme</legend>
+          <div class="row-fluid">
+            {% for theme in themes %}
+            <div class="span4">
+              <div class="theme-preview">
+                <img src="http://placehold.it/200x200">
+                <p>{{ theme.thumbnail }}</p>
+                <label>Pick me!
+                  <input type="radio" name="theme-name" value="{{ theme.name }}">
+                </label>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </fieldset>
+        <br>
+        <div class="btn-span">
+          <input type="submit" class="btn btn-primary btn-block btn-large" value="Finalize Blog">
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

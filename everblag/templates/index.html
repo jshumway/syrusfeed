@@ -1,4 +1,31 @@
-<p>Hello</p>
-<form action="/start-auth" method="POST">
-    <input type="submit" value="hello">
-</form>
+{% extends 'base.html' %}
+{% block body %}
+<div class="container">
+  <div class="row">
+    <div class="span8 offset2">
+      {% if success %}
+      <div class="alert alert-success">
+        <strong>Success!</strong> You have a <a href="/f/{{ blog_slug }}">brand new blog!</a>
+      </div>
+      {% endif %}
+
+      <h1>The Easiest Blog Platform Ever</h1>
+      <p>
+        <strong>SyrusFeed</strong> turns an <a href="http://evernote.com"><strong>Evernote</strong></a> notebook into a personal blog. Sign up is super easy, just log into Evernote with the button below, choose a name, and you are off!
+      </p>
+
+      <br>
+
+      <form action="/start-auth" method="POST">
+        <div class="btn-span">
+          <input type="submit" class="btn btn-primary btn-block btn-large" value="Sign Up With Evernote">
+        </div>
+      </form>
+
+      <br>
+
+      {{ lipsum(2) }}
+    </div>
+  </div>
+</div>
+{% endblock %}

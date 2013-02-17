@@ -5,11 +5,11 @@ from evernote.api.client import EvernoteClient
 import evernote.edam.type.ttypes as types
 import evernote.edam.userstore.UserStore as UserStore
 import evernote.edam.notestore.NoteStore as NoteStore
-from flask import redirect, render_template, request, session
+from flask import redirect, render_template, request, session, flash
 from sqlalchemy.orm.exc import NoResultFound
 
 from everblag import app, db
-from everblag.models import User
+from everblag.models import User, Theme
 from everblag.util import slugify, strip_ml_tags
 
 
@@ -55,21 +55,31 @@ def find_blog_owner(blog_slug):
     return user
 
 
-def create_user(evernote_token, blog_name, theme_name):
+def create_user(evernote_token, blog_name, theme_id):
     guid = initialize_evernote_account(
         get_evernote_client(token=evernote_token))
 
-    user = User(evernote_token, blog_name, guid, 'default')
+    user = User(evernote_token, blog_name, guid, theme_id)
 
     db.session.add(user)
     db.session.commit()
+
+    return user
 
 
 @app.route('/')
 def index():
     """ The Everblag page, promotes Everblag, sign up, etc. """
 
-    return render_template('index.html')
+    if session.get('signed-up'):
+        user = db.session.query(User).\
+            filter(User.id == session.get('uid')).one()
+        session['signed-up'] = None
+
+        return render_template('index.html', success=True,
+                               blog_slug=user.blog_slug)
+
+    return render_template('index.html', success=False)
 
 
 @app.route('/start-auth', methods=['POST'])
@@ -98,13 +108,23 @@ def sign_up():
             return redirect('/')
 
         blog_name = request.form.get('blog-name')
+        theme_name = request.form.get('theme-name')
+
+        try:
+            theme = db.session.query(Theme).\
+                filter(Theme.name == theme_name).one()
+        except: # I KNOW ITS BAD DGAF.
+            return redirect('/')
 
         if not blog_name or len(blog_name) < 5 or len(blog_name) > 64:
             return redirect('/')
 
-        create_user(session['access_token'], blog_name, 'default')
+        user = create_user(session['access_token'], blog_name, theme.id)
 
-        return "Success!"
+        session['signed-up'] = 'True'
+        session['uid'] = user.id
+
+        return redirect('/')
 
     try:
         client = get_evernote_client()
@@ -117,7 +137,10 @@ def sign_up():
 
     session['access_token'] = client.token
 
-    return render_template('/sign-up.html')
+    themes = db.session.query(Theme).all()
+
+    return render_template(
+        '/sign-up.html', themes=themes)
 
 
 @app.route('/f/<blog_slug>')
@@ -154,7 +177,8 @@ def blog_index(blog_slug):
             })
 
     return render_template('/archive.html', posts=posts,
-                           title=user.blog_name, blog_slug=blog_slug)
+                           title=user.blog_name, blog_slug=blog_slug,
+                           stylesheet=user.theme.static_path)
 
 
 def note_guid_from_slug(note_store, user, slug):
@@ -189,4 +213,5 @@ def blog_post(blog_slug, post_slug):
 
     return render_template(
         'post.html', title=note.title, content=note.content,
-        date=datetime.date.fromtimestamp(note.updated/1000))
+        date=datetime.date.fromtimestamp(note.updated/1000),
+        stylesheet=user.theme.static_path)
