@@ -1,0 +1,19 @@
+.btn-span {
+    margin-left: auto;
+    margin-right: auto;
+    width: 70%;
+}
+
+.theme-preview {
+    margin-left: auto;
+    margin-right: auto;
+    width: 200px;
+}
+
+footer {
+    padding-top: 20px;
+    padding-bottom: 20px;
+    text-transform: uppercase;
+    text-align: center;
+    font-size: 10px;
+}
